@@ -1,0 +1,21 @@
+TGX Files/Films/*
+TGX Files/Extras/*
+TGX Files/extract/*
+TGX Files/Logs/*
+TGX Files/Maps/*
+TGX Files/SAI/*
+TGX Files/Campaign/*
+
+TGX Files/*.exe
+TGX Files/*.tgw
+TGX Files/*.dll
+TGX Files/*.conf
+TGX Files/*.cfg
+
+TGX Files/autopatch.ini
+TGX Files/readme.txt
+TGX Files/error.txt
+TGX Files/LicenseAgreement.txt
+TGX Files/Uninstall Kohan Ahriman's Gift.lnk
+TGX Files/version.txt
+TGX Files/Data/MULTIMEDIA.INI
