@@ -20,4 +20,6 @@ TGX Files/Uninstall Kohan Ahriman's Gift.lnk
 TGX Files/version.txt
 TGX Files/Data/MULTIMEDIA.INI
 
-/*changelog.log
+# For excluding local changelog notes
+# Not a game file
+*changelog.log
