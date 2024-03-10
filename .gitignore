@@ -3,8 +3,9 @@ TGX Files/Extras/*
 TGX Files/extract/*
 TGX Files/Logs/*
 TGX Files/Maps/Testing shit/*
-TGX Files/SAI/vssver.scc
+TGX Files/SAI/*
 TGX Files/Campaign/*
+TGX Files/Shaders/*
 
 TGX Files/*.exe
 TGX Files/*.tgw
@@ -13,6 +14,7 @@ TGX Files/*.conf
 TGX Files/*.cfg
 
 TGX Files/autopatch.ini
+TGX Files/ddraw.ini
 TGX Files/readme.txt
 TGX Files/error.txt
 TGX Files/LicenseAgreement.txt
