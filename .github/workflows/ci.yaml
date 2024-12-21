@@ -128,36 +128,13 @@ jobs:
         id: get_hash
         run: echo "HASH=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
         
-      - name: Build Changelog
-        id: github_release
-        uses: mikepenz/release-changelog-builder-action@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          configurationJson: |
-            {
-              "template": "## What's Changed\n\n#{{CHANGELOG}}\n\n**Full Changelog**: [#{{FROM_TAG}}...#{{TO_TAG}}](#{{RELEASE_DIFF}})",
-              "pr_template": "* #{{TITLE}} by @#{{AUTHOR}} in ##{{NUMBER}}",
-              "empty_template": "No changes in this release",
-              "categories": [],
-              "sort": {
-                "order": "ASC",
-                "on_property": "mergedAt"
-              },
-              "base_branches": [
-                "main"
-              ],
-              "max_tags_to_fetch": 200,
-              "max_pull_requests": 200
-            }
-      
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: ncipollo/release-action@v1
         with:
-          files: KohanGold-*.tgx
+          allowUpdates: true
+          generateReleaseNotes: true
           name: Kohan Gold ${{ steps.get_version.outputs.VERSION }}
-          draft: false
-          prerelease: false
+          tag: ${{ steps.get_version.outputs.VERSION }}
           body: |
             ## Mod Launcher:
             Files with a .tgx extension need to be placed in the main game folder, where the exes that run the game are. ***You will need the [launcher (Download)](https://github.com/Kohan-Citadel/kohangold-KG-/releases/download/v0.9.6/KohanLauncher.exe) exe to start the game with mod files*** *if you do not already have it*.
@@ -172,3 +149,4 @@ jobs:
             *ONLY USE ONE VERSION OF KOHAN GOLD AT A TIME.*
       
             ## [DOWNLOAD](https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.VERSION }}/KohanGold-${{ steps.get_version.outputs.VERSION }}.tgx) the Kohan Gold ${{ steps.get_version.outputs.VERSION }} mod.
+          artifacts: "KohanGold-*.tgx"
