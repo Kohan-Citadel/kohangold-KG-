@@ -1,0 +1,174 @@
+name: Build and Pack TGX Files
+
+on:
+  push:
+    branches: [ main, gh-actions ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ '**' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+  issues: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: |
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      !contains(github.event.head_commit.message, '[ci skip]') &&
+      !contains(github.event.head_commit.message, '[skip-ci]') &&
+      !contains(github.event.head_commit.message, '[no ci]') &&
+      (
+        github.event_name == 'push' ||
+        github.event_name == 'workflow_dispatch' ||
+        github.event_name == 'pull_request'
+      )
+    
+    steps:
+    - name: Checkout KohanGold repo
+      uses: actions/checkout@v4
+      with:
+        path: kohangold
+        ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.ref }}
+
+    - name: Checkout tgxpack repo
+      uses: actions/checkout@v4
+      with:
+        repository: tim-de/tgxpack
+        path: tgxpack
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+
+    - name: Go Cache
+      uses: actions/cache@v4
+      timeout-minutes: 5
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-v1
+        restore-keys: |
+          ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-
+          ${{ runner.os }}-go-
+        
+    - name: Update Go dependencies
+      if: steps.go-cache.outputs.cache-hit != 'true'
+      run: |
+        cd tgxpack
+        go mod tidy
+        go mod download
+
+    - name: Build tgxpack
+      run: |
+        cd tgxpack
+        go build
+        chmod +x tgxpack
+
+    - name: Initialize tgxpack config
+      run: |
+        mkdir -p /home/runner/.config/tgxpack
+        echo "[main]" > /home/runner/.config/tgxpack/tgxpack.ini
+        echo "destdir = ." >> /home/runner/.config/tgxpack/tgxpack.ini
+        echo "sourcefile = none" >> /home/runner/.config/tgxpack/tgxpack.ini
+
+    - name: Pack TGX Files
+      run: |
+        cd kohangold
+        ../tgxpack/tgxpack pack "TGX Files"
+        
+        if [[ "${{ github.ref_type }}" == "tag" ]]; then
+          mv "TGX Files.tgx" "KohanGold-${{ github.ref_name }}.tgx"
+        elif [[ "${{ github.event_name }}" == "pull_request_target" ]]; then
+          branch_name="${{ github.event.pull_request.head.ref }}"
+          mv "TGX Files.tgx" "KohanGold-PR-${branch_name}.tgx"
+        else
+          commit_hash=$(git rev-parse --short HEAD)
+          mv "TGX Files.tgx" "KohanGold-${commit_hash}.tgx"
+        fi
+
+    - name: Upload TGX artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: KohanGold-TGX
+        path: |
+          kohangold/KohanGold-*.tgx
+
+  release:
+      needs: build
+      runs-on: ubuntu-latest
+      if: startsWith(github.ref, 'refs/tags/') && !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip-ci]') && !contains(github.event.head_commit.message, '[no ci]')
+      permissions:
+        contents: write
+        pull-requests: read
+        issues: read
+      
+      steps:
+      - name: Checkout code for changelog
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+  
+      - name: Download built TGX
+        uses: actions/download-artifact@v4
+        with:
+          name: KohanGold-TGX
+  
+      - name: Get version
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+  
+      - name: Get commit hash
+        id: get_hash
+        run: echo "HASH=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        
+      - name: Build Changelog
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          configurationJson: |
+            {
+              "template": "## What's Changed\n\n#{{CHANGELOG}}\n\n**Full Changelog**: [#{{FROM_TAG}}...#{{TO_TAG}}](#{{RELEASE_DIFF}})",
+              "pr_template": "* #{{TITLE}} by @#{{AUTHOR}} in ##{{NUMBER}}",
+              "empty_template": "No changes in this release",
+              "categories": [],
+              "sort": {
+                "order": "ASC",
+                "on_property": "mergedAt"
+              },
+              "base_branches": [
+                "main"
+              ],
+              "max_tags_to_fetch": 200,
+              "max_pull_requests": 200
+            }
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: KohanGold-*.tgx
+          name: Kohan Gold ${{ steps.get_version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          body: |
+            ## Mod Launcher:
+            Files with a .tgx extension need to be placed in the main game folder, where the exes that run the game are. ***You will need the [launcher (Download)](https://github.com/Kohan-Citadel/kohangold-KG-/releases/download/v0.9.6/KohanLauncher.exe) exe to start the game with mod files*** *if you do not already have it*.
+      
+            For all cd version users, this is \Program Files (x86)\TimeGate Studios\Kohan Ahrimans Gift
+      
+            For Steam users, simply right click on the game, manage then browse local files. It will take you to the correct folder.
+      
+            Make sure the launcher and .tgx files are in the game folder and start the game normally (Just drop the files in, that's all the install needed). Before the game starts, you will be allowed to select mods to launch with by ticking the boxes.
+      
+            *MOD CONFLICTS CAN CAUSE ERRORS & GAME CRASHES.*
+            *ONLY USE ONE VERSION OF KOHAN GOLD AT A TIME.*
+      
+            ## [DOWNLOAD](https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.VERSION }}/KohanGold-${{ steps.get_version.outputs.VERSION }}.tgx) the Kohan Gold ${{ steps.get_version.outputs.VERSION }} mod.
