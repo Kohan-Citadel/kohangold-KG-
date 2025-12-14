@@ -1,26 +1,26 @@
-TGX Files/Films/*
-TGX Files/Extras/*
-TGX Files/extract/*
-TGX Files/Logs/*
-TGX Files/Maps/Testing shit/*
-TGX Files/SAI/*
-TGX Files/Campaign/*
-TGX Files/Shaders/*
+TGX_FILES/Films/*
+TGX_FILES/Extras/*
+TGX_FILES/extract/*
+TGX_FILES/Logs/*
+TGX_FILES/Maps/Testing shit/*
+TGX_FILES/SAI/*
+TGX_FILES/Campaign/*
+TGX_FILES/Shaders/*
 
-TGX Files/*.exe
-TGX Files/*.tgw
-TGX Files/*.dll
-TGX Files/*.conf
-TGX Files/*.cfg
+TGX_FILES/*.exe
+TGX_FILES/*.tgw
+TGX_FILES/*.dll
+TGX_FILES/*.conf
+TGX_FILES/*.cfg
 
-TGX Files/autopatch.ini
-TGX Files/ddraw.ini
-TGX Files/readme.txt
-TGX Files/error.txt
-TGX Files/LicenseAgreement.txt
-TGX Files/Uninstall Kohan Ahriman's Gift.lnk
-TGX Files/version.txt
-TGX Files/Data/MULTIMEDIA.INI
+TGX_FILES/autopatch.ini
+TGX_FILES/ddraw.ini
+TGX_FILES/readme.txt
+TGX_FILES/error.txt
+TGX_FILES/LicenseAgreement.txt
+TGX_FILES/Uninstall Kohan Ahriman's Gift.lnk
+TGX_FILES/version.txt
+TGX_FILES/Data/MULTIMEDIA.INI
 
 # For excluding local changelog notes
 # Not a game file
